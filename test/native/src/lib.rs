@@ -21,6 +21,9 @@ struct Inner;
 struct Inner2(i32, bool, String);
 
 #[derive(Serialize, Debug, Deserialize, Eq, PartialEq)]
+struct Inner3(u8);
+
+#[derive(Serialize, Debug, Deserialize, Eq, PartialEq)]
 enum TypeEnum {
     Empty,
     Tuple(u32, String),
@@ -47,6 +50,7 @@ struct AnObjectTwo {
     p: Vec<f64>,
     q: u128,
     r: i128,
+    s: Inner3
 }
 
 macro_rules! make_test {
@@ -107,6 +111,7 @@ make_test!(make_object, {
         p: vec![1., 2., 3.5],
         q: 999,
         r: 333,
+        s: Inner3(1)
     };
     value
 });
@@ -155,7 +160,8 @@ make_expect!(
         o: TypeEnum::Value(vec!['z', 'y', 'x']),
         p: vec![1., 2., 3.5],
         q: 999,
-        r: 333
+        r: 333,
+        s: Inner3(1)
     },
     AnObjectTwo
 );
