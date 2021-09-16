@@ -52,7 +52,7 @@
 //!         .unwrap();
 //!     println!("{:?}", arg0_value);
 //!
-//!     Ok(JsUndefined::new().upcast())
+//!     Ok(JsUndefined::new(&mut cx).upcast())
 //! }
 //!
 //! fn serialize_something(mut cx: FunctionContext) -> JsResult<JsValue> {
