@@ -108,7 +108,9 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
         if let Ok(val) = self.input.downcast::<JsString, C>(self.cx) {
             let key_value = val.value(self.cx);
             visitor.visit_enum(JsEnumAccess::new(self.cx, key_value, None))
-        } else if let Ok(val) = self.input.downcast::<JsObject, C>(self.cx) {
+        } else if let Ok(_val) = self.input.downcast::<JsObject, C>(self.cx) {
+            todo!();
+            /*
             let prop_names = val.get_own_property_names(self.cx)?;
             let len = prop_names.len(self.cx);
             if len != 1 {
@@ -121,6 +123,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
             let enum_value = val.get(self.cx, key)?;
             let key_value = key.value(self.cx);
             visitor.visit_enum(JsEnumAccess::new(self.cx, key_value, Some(enum_value)))
+            */
         } else {
             let m = self.input.to_string(self.cx)?.value(self.cx);
             Err(ErrorKind::InvalidKeyType(m))?
@@ -210,7 +213,9 @@ struct JsObjectAccess<'a, 'j, C: Context<'j> + 'a> {
 
 #[doc(hidden)]
 impl<'x, 'a, 'j, C: Context<'j>> JsObjectAccess<'a, 'j, C> {
-    fn new(cx: &'a mut C, input: Handle<'j, JsObject>) -> LibResult<Self> {
+    fn new(_cx: &'a mut C, _input: Handle<'j, JsObject>) -> LibResult<Self> {
+        todo!();
+        /*
         let prop_names = input.get_own_property_names(cx)?;
         let len = prop_names.len(cx);
 
@@ -221,6 +226,7 @@ impl<'x, 'a, 'j, C: Context<'j>> JsObjectAccess<'a, 'j, C> {
             idx: 0,
             len,
         })
+        */
     }
 }
 
