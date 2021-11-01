@@ -50,10 +50,15 @@ struct AnObjectTwo {
 
 macro_rules! make_test {
     ($name:ident, $val:expr) => {
-        fn $name(mut cx: FunctionContext) -> JsResult<JsValue> {
-            let value = $val;
+        fn $name(cx: FunctionContext) -> JsResult<JsValue> {
+            fn inner(mut cx: FunctionContext) -> neon_serde::errors::Result<Handle<JsValue>> {
+                let value = $val;
 
-            neon_serde::to_value(&mut cx, &value).or_else(|e| cx.throw_error(e.to_string()))
+                let handle = neon_serde::to_value(&mut cx, &value)?;
+                Ok(handle)
+            }
+
+            Ok(inner(cx)?)
         }
     };
 }
@@ -111,18 +116,16 @@ make_test!(make_buff, { serde_bytes::Bytes::new(NUMBER_BYTES) });
 
 macro_rules! make_expect {
     ($name:ident, $val:expr, $val_type:ty) => {
-        fn $name(mut cx: FunctionContext) -> JsResult<JsValue> {
-            let value = $val;
-            let arg0 = cx.argument::<JsValue>(0)?;
+        fn $name(cx: FunctionContext) -> JsResult<JsValue> {
+            fn inner(mut cx: FunctionContext) -> neon_serde::errors::Result<Handle<JsValue>> {
+                let value = $val;
+                let arg0 = cx.argument::<JsValue>(0)?;
 
-            let de_serialized: $val_type = match neon_serde::from_value(&mut cx, arg0) {
-                Ok(value) => value,
-                Err(e) => {
-                    return cx.throw_error(e.to_string());
-                }
-            };
-            assert_eq!(value, de_serialized);
-            Ok(JsUndefined::new().upcast())
+                let de_serialized: $val_type = neon_serde::from_value(&mut cx, arg0)?;
+                assert_eq!(value, de_serialized);
+                Ok(JsUndefined::new().upcast())
+            }
+            Ok(inner(cx)?)
         }
     };
 }
@@ -167,12 +170,8 @@ make_expect!(
 fn roundtrip_object(mut cx: FunctionContext) -> JsResult<JsValue> {
     let arg0 = cx.argument::<JsValue>(0)?;
 
-    let de_serialized: AnObjectTwo = neon_serde::from_value(&mut cx, arg0)
-        .or_else(|e| cx.throw_error(e.to_string()))
-        .unwrap();
-    let handle = neon_serde::to_value(&mut cx, &de_serialized)
-        .or_else(|e| cx.throw_error(e.to_string()))
-        .unwrap();
+    let de_serialized: AnObjectTwo = neon_serde::from_value(&mut cx, arg0)?;
+    let handle = neon_serde::to_value(&mut cx, &de_serialized)?;
     Ok(handle)
 }
 

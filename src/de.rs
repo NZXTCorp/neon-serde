@@ -6,6 +6,7 @@ use errors::Error as LibError;
 use errors::ErrorKind;
 use errors::Result as LibResult;
 use neon::prelude::*;
+use neon::types::buffer::TypedArray;
 use serde;
 use serde::de::Visitor;
 use serde::de::{DeserializeOwned, DeserializeSeed, EnumAccess, MapAccess, SeqAccess, Unexpected,
@@ -132,7 +133,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
         V: Visitor<'x>,
     {
         let buff = self.input.downcast::<JsBuffer, C>(self.cx).or_throw(self.cx)?;
-        let copy = self.cx.borrow(&buff, |buff| Vec::from(buff.as_slice()));
+        let copy = Vec::from(buff.as_slice(self.cx));
         visitor.visit_bytes(&copy)
     }
 
@@ -141,7 +142,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
         V: Visitor<'x>,
     {
         let buff = self.input.downcast::<JsBuffer, C>(self.cx).or_throw(self.cx)?;
-        let copy = self.cx.borrow(&buff, |buff| Vec::from(buff.as_slice()));
+        let copy = Vec::from(buff.as_slice(self.cx));
         visitor.visit_byte_buf(copy)
     }
 

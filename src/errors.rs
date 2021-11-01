@@ -1,6 +1,9 @@
 //! Defines error handling types used by the create
 //! uses the `error-chain` create for generation
 
+extern crate neon_runtime;
+
+
 use neon;
 use serde::{de, ser};
 use std::convert::From;
@@ -80,6 +83,33 @@ impl ser::Error for Error {
 impl de::Error for Error {
     fn custom<T: Display>(msg: T) -> Self {
         ErrorKind::Msg(msg.to_string()).into()
+    }
+}
+
+impl Error {
+    fn into_throw<'a, 'b: 'a, C>(self, cx: &'a mut C) -> neon::result::Throw
+    where
+        C: neon::context::Context<'b>,
+    {
+        if let ErrorKind::Js(_) = *self.kind() {
+            return neon::result::Throw;
+        };
+        cx.throw_error::<String, ()>(format!("{:?}", self)).unwrap_err()
+    }
+}
+
+pub trait MapErrIntoThrow<T> {
+    fn map_err_into_throw<'a, 'b: 'a, C>(self, cx: &'a mut C) -> neon::result::NeonResult<T>
+    where
+        C: neon::context::Context<'b>;
+}
+
+impl<T> MapErrIntoThrow<T> for std::result::Result<T, Error> {
+    fn map_err_into_throw<'a, 'b: 'a, C>(self, cx: &'a mut C) -> neon::result::NeonResult<T>
+where
+    C: neon::context::Context<'b>
+    {
+        self.map_err(|e| e.into_throw(cx))
     }
 }
 
