@@ -25,17 +25,16 @@ Convert a value implementing `serde::Serialize` to
 a `Handle<JsValue>`
 
 ## Export Macro example
-The export! macro allows you to quickly define functions automatically convert thier arguments
+The `export!` macro allows you to quickly define functions automatically convert their arguments
 
 ```rust,no_run
-
 #[macro_use]
 extern crate neon;
 #[macro_use]
 extern crate neon_serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_bytes;
+use neon_serde::errors::MapErrIntoThrow;
 
 #[derive(Deserialize)]
 struct User {
@@ -60,6 +59,36 @@ export! {
         user.map(greet)
     }
 
+    /// using `Vec<u8>` not accept a buffer
+    fn expect_array(_buff: Vec<u8>) -> () {
+        // code
+    }
+
+    /// calculate fibonacci recursively
+    fn fibonacci(n: i32) -> i32 {
+        match n {
+            1 | 2 => 1,
+            n => fibonacci(n - 1) + fibonacci(n - 2)
+        }
+    }
+}
+# // This is needed for when rustdoc parses this as a doc-test
+# fn main () {}
+```
+
+The `export!` macro with `serde_bytes`:
+
+```rust,ignore
+#[macro_use]
+extern crate neon;
+#[macro_use]
+extern crate neon_serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_bytes;
+use neon_serde::errors::MapErrIntoThrow;
+
+export! {
     /// Sorts the bytes in a string
     /// use `serde_bytes::ByteBuf` to return a `Buffer` in node
     /// a `Vec<u8>` will be an array
@@ -76,23 +105,8 @@ export! {
     fn expect_buffer_only(_buff: serde_bytes::ByteBuf) -> () {
         // code
     }
-
-    /// using `Vec<u8>` not accept a buffer
-    fn expect_array(_buff: Vec<u8>) -> () {
-        // code
-    }
-
-    /// calculate fibonacci recursively
-    fn fibonacci(n: i32) -> i32 {
-        match n {
-            1 | 2 => 1,
-            n => fibonacci(n - 1) + fibonacci(n - 2)
-        }
-    }
 }
-
 ```
-
 
 ## Direct Usage Example
 
@@ -103,6 +117,7 @@ extern crate neon;
 extern crate serde_derive;
 
 use neon::prelude::*;
+use neon_serde::errors::MapErrIntoThrow;
 
 #[derive(Serialize, Debug, Deserialize)]
 struct AnObject {
@@ -114,10 +129,10 @@ struct AnObject {
 fn deserialize_something(mut cx: FunctionContext) -> JsResult<JsValue> {
     let arg0 = cx.argument::<JsValue>(0)?;
 
-    let arg0_value :AnObject = neon_serde::from_value(&mut cx, arg0)?;
+    let arg0_value :AnObject = neon_serde::from_value(&mut cx, arg0).map_err_into_throw(&mut cx)?;
     println!("{:?}", arg0_value);
 
-    Ok(JsUndefined::new().upcast())
+    Ok(JsUndefined::new(&mut cx).upcast())
 }
 
 fn serialize_something(mut cx: FunctionContext) -> JsResult<JsValue> {
@@ -127,9 +142,11 @@ fn serialize_something(mut cx: FunctionContext) -> JsResult<JsValue> {
         c: "a string".into()
     };
 
-    let js_value = neon_serde::to_value(&mut cx, &value)?;
+    let js_value = neon_serde::to_value(&mut cx, &value).map_err_into_throw(&mut cx)?;
     Ok(js_value)
 }
+# // This is needed for when rustdoc parses this as a doc-test
+# fn main () {}
 ```
 
 ## Limitations
