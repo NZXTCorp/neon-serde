@@ -23,12 +23,12 @@ macro_rules! export {
 
                     $(
                         let $arg = cx.argument_opt(_arg_index);
-                        let $arg: $atype = $crate::from_value_opt(&mut cx, $arg)?;
+                        let $arg: $atype = $crate::from_value_opt(&mut cx, $arg).map_err_into_throw(&mut cx)?;
                         _arg_index += 1;
                     )*
 
                     let result = $name($( $arg ),*);
-                    let handle = $crate::to_value(&mut cx, &result)?;
+                    let handle = $crate::to_value(&mut cx, &result).map_err_into_throw(&mut cx)?;
                     Ok(handle)
                 })?;
             )*

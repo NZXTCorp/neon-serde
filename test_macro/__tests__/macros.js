@@ -25,7 +25,7 @@ describe('macro functions', () => {
         native.expect_buffer_only(new Buffer('000011110000', 'hex'))
         expect(() => {
           native.expect_buffer_only([1, 2, 3, 4])
-        }).toThrow(/failed downcast to Buffer/)
+        }).toThrow(/failed to downcast any to Buffer/)
 
         native.expect_array([0,0,0,0])
     })

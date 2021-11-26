@@ -5,6 +5,7 @@ extern crate neon_serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_bytes;
+use neon_serde::MapErrIntoThrow;
 
 #[derive(Deserialize)]
 struct User {
