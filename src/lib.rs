@@ -89,6 +89,14 @@ pub use de::from_value_opt;
 pub use errors::MapErrIntoThrow;
 pub use ser::to_value;
 
+///
+#[doc = include_str!("../readme.md")]
+///
+/// NOTE This private method is just so we include the examples from the 'readme.md' in the doc-test
+/// pass to make sure they still compile.
+#[allow(dead_code)]
+fn check_readme() {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

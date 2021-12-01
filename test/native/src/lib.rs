@@ -5,6 +5,7 @@ extern crate serde_bytes;
 extern crate serde_derive;
 
 use neon::prelude::*;
+use neon_serde::MapErrIntoThrow;
 
 #[derive(Serialize, Debug, Deserialize)]
 struct AnObject {
@@ -50,15 +51,15 @@ struct AnObjectTwo {
 
 macro_rules! make_test {
     ($name:ident, $val:expr) => {
-        fn $name(cx: FunctionContext) -> JsResult<JsValue> {
-            fn inner(mut cx: FunctionContext) -> neon_serde::errors::Result<Handle<JsValue>> {
+        fn $name(mut cx: FunctionContext) -> JsResult<JsValue> {
+            fn inner<'ctx>(cx: &mut FunctionContext<'ctx>) -> neon_serde::errors::Result<Handle<'ctx, JsValue>> {
                 let value = $val;
 
-                let handle = neon_serde::to_value(&mut cx, &value)?;
+                let handle = neon_serde::to_value(cx, &value)?;
                 Ok(handle)
             }
 
-            Ok(inner(cx)?)
+            Ok(inner(&mut cx).map_err_into_throw(&mut cx)?)
         }
     };
 }
@@ -116,16 +117,16 @@ make_test!(make_buff, { serde_bytes::Bytes::new(NUMBER_BYTES) });
 
 macro_rules! make_expect {
     ($name:ident, $val:expr, $val_type:ty) => {
-        fn $name(cx: FunctionContext) -> JsResult<JsValue> {
-            fn inner(mut cx: FunctionContext) -> neon_serde::errors::Result<Handle<JsValue>> {
+        fn $name(mut cx: FunctionContext) -> JsResult<JsValue> {
+            fn inner<'ctx>(cx: &mut FunctionContext<'ctx>) -> neon_serde::errors::Result<Handle<'ctx, JsValue>> {
                 let value = $val;
                 let arg0 = cx.argument::<JsValue>(0)?;
 
-                let de_serialized: $val_type = neon_serde::from_value(&mut cx, arg0)?;
+                let de_serialized: $val_type = neon_serde::from_value(cx, arg0)?;
                 assert_eq!(value, de_serialized);
-                Ok(JsUndefined::new().upcast())
+                Ok(JsUndefined::new(cx).upcast())
             }
-            Ok(inner(cx)?)
+            Ok(inner(&mut cx).map_err_into_throw(&mut cx)?)
         }
     };
 }
@@ -170,8 +171,8 @@ make_expect!(
 fn roundtrip_object(mut cx: FunctionContext) -> JsResult<JsValue> {
     let arg0 = cx.argument::<JsValue>(0)?;
 
-    let de_serialized: AnObjectTwo = neon_serde::from_value(&mut cx, arg0)?;
-    let handle = neon_serde::to_value(&mut cx, &de_serialized)?;
+    let de_serialized: AnObjectTwo = neon_serde::from_value(&mut cx, arg0).map_err_into_throw(&mut cx)?;
+    let handle = neon_serde::to_value(&mut cx, &de_serialized).map_err_into_throw(&mut cx)?;
     Ok(handle)
 }
 

@@ -14,7 +14,7 @@ crate-type = ["dylib"]
 neon-build = "0.7.0"
 
 [dependencies]
-neon = "0.7.0"
+neon = { version = "0.10.0-alpha.2", default-features = false, features = ["default-panic-hook", "napi-6", "try-catch-api", "event-queue-api"] }
 neon-serde = { path = "../../" }
 serde_derive = "1.0.106"
 serde = "1.0.106"
