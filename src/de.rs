@@ -22,7 +22,7 @@ where
     C: Context<'j>,
     T: DeserializeOwned + ?Sized,
 {
-    let mut deserializer: Deserializer<C> = Deserializer::new(cx, value);
+    let mut deserializer: Deserializer<C> = Deserializer::from_value(cx, value);
     let t = T::deserialize(&mut deserializer)?;
     Ok(t)
 }
@@ -36,15 +36,13 @@ where
     from_value(cx, unwrapped)
 }
 
-#[doc(hidden)]
 pub struct Deserializer<'a, 'j, C: Context<'j> + 'a> {
     cx: &'a mut C,
     input: Handle<'j, JsValue>,
 }
 
-#[doc(hidden)]
 impl<'a, 'j, C: Context<'j>> Deserializer<'a, 'j, C> {
-    fn new(cx: &'a mut C, input: Handle<'j, JsValue>) -> Self {
+    pub fn from_value(cx: &'a mut C, input: Handle<'j, JsValue>) -> Self {
         Deserializer { cx, input }
     }
 }
@@ -198,7 +196,7 @@ impl<'x, 'a, 'j, C: Context<'j>> SeqAccess<'x> for JsArrayAccess<'a, 'j, C> {
         let v = self.input.get(self.cx, self.idx)?;
         self.idx += 1;
 
-        let mut de = Deserializer::new(self.cx, v);
+        let mut de = Deserializer::from_value(self.cx, v);
         seed.deserialize(&mut de).map(Some)
     }
 }
@@ -242,7 +240,7 @@ impl<'x, 'a, 'j, C: Context<'j>> MapAccess<'x> for JsObjectAccess<'a, 'j, C> {
 
         let prop_name = self.prop_names.get(self.cx, self.idx)?;
 
-        let mut de = Deserializer::new(self.cx, prop_name);
+        let mut de = Deserializer::from_value(self.cx, prop_name);
         seed.deserialize(&mut de).map(Some)
     }
 
@@ -257,7 +255,7 @@ impl<'x, 'a, 'j, C: Context<'j>> MapAccess<'x> for JsObjectAccess<'a, 'j, C> {
         let value = self.input.get(self.cx, prop_name)?;
 
         self.idx += 1;
-        let mut de = Deserializer::new(self.cx, value);
+        let mut de = Deserializer::from_value(self.cx, value);
         let res = seed.deserialize(&mut de)?;
         Ok(res)
     }
@@ -317,7 +315,7 @@ impl<'x, 'a, 'j, C: Context<'j>> VariantAccess<'x> for JsVariantAccess<'a, 'j, C
     fn unit_variant(self) -> Result<(), Self::Error> {
         match self.value {
             Some(val) => {
-                let mut deserializer = Deserializer::new(self.cx, val);
+                let mut deserializer = Deserializer::from_value(self.cx, val);
                 serde::de::Deserialize::deserialize(&mut deserializer)
             }
             None => Ok(()),
@@ -330,7 +328,7 @@ impl<'x, 'a, 'j, C: Context<'j>> VariantAccess<'x> for JsVariantAccess<'a, 'j, C
     {
         match self.value {
             Some(val) => {
-                let mut deserializer = Deserializer::new(self.cx, val);
+                let mut deserializer = Deserializer::from_value(self.cx, val);
                 seed.deserialize(&mut deserializer)
             }
             None => Err(serde::de::Error::invalid_type(
