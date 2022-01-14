@@ -38,13 +38,24 @@ where
     Ok(serialized_value)
 }
 
-#[doc(hidden)]
 pub struct Serializer<'a, 'j, C: 'a>
 where
     C: Context<'j>,
 {
     cx: &'a mut C,
     ph: PhantomData<&'j ()>,
+}
+
+impl<'a, 'j, C: 'a> Serializer<'a, 'j, C>
+where
+    C: Context<'j>,
+{
+    pub fn to_value(cx: &'a mut C) -> Self {
+        Self {
+            cx,
+            ph: PhantomData,
+        }
+    }
 }
 
 #[doc(hidden)]
