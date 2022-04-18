@@ -78,9 +78,9 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
             let mut deserializer = JsObjectAccess::new(self.cx, val)?;
             visitor.visit_map(&mut deserializer)
         } else {
-            bail!(ErrorKind::NotImplemented(
-                "unimplemented Deserializer::Deserializer",
-            ));
+            return Err(
+                ErrorKind::NotImplemented("unimplemented Deserializer::Deserializer").into(),
+            );
         }
     }
 

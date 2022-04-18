@@ -71,12 +71,11 @@
 //! ```
 //!
 
-#[macro_use]
-extern crate error_chain;
 extern crate neon;
 extern crate num;
 #[macro_use]
 extern crate serde;
+extern crate thiserror;
 
 pub mod de;
 pub mod errors;
