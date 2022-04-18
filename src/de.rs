@@ -71,7 +71,10 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
             visitor.visit_string(val.value(self.cx))
         } else if let Ok(val) = self.input.downcast::<JsNumber, C>(self.cx) {
             let v = val.value(self.cx);
+            // Using a margin here would defeat the purpose. This code is checking if a perfect integer is contained
+            #[allow(clippy::float_cmp)]
             if v.trunc() == v {
+                #[allow(clippy::cast_possible_truncation)] // Truncating is the point of this code.
                 visitor.visit_i64(v as i64)
             } else {
                 visitor.visit_f64(v)
