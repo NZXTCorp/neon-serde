@@ -10,8 +10,8 @@ readme = "readme.md"
 [dependencies]
 serde = "1"
 thiserror = "1"
-neon = { version = "0.10.0-alpha.2", default-features = false, features = ["default-panic-hook", "napi-6", "try-catch-api", "event-queue-api"] }
-neon-runtime = { version = "0.10.0-alpha.2", features = ["napi-6"]}
+neon = { version = "0.10.0", default-features = false, features = ["default-panic-hook", "napi-6", "try-catch-api", "event-queue-api"] }
+neon-runtime = { version = "0.10.0", features = ["napi-6"]}
 
 [dependencies.num]
 version = "0.2"

@@ -116,7 +116,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
                     len
                 )))?
             }
-            let key = prop_names.get(self.cx, 0)?.downcast::<JsString, C>(self.cx).or_throw(self.cx)?;
+            let key = prop_names.get::<JsValue, _, _>(self.cx, 0)?.downcast::<JsString, C>(self.cx).or_throw(self.cx)?;
             let enum_value = val.get(self.cx, key)?;
             let key_value = key.value(self.cx);
             visitor.visit_enum(JsEnumAccess::new(self.cx, key_value, Some(enum_value)))
@@ -254,7 +254,7 @@ impl<'x, 'a, 'j, C: Context<'j>> MapAccess<'x> for JsObjectAccess<'a, 'j, C> {
         if self.idx >= self.len {
             return Err(ErrorKind::ArrayIndexOutOfBounds(self.len, self.idx))?;
         }
-        let prop_name = self.prop_names.get(self.cx, self.idx)?;
+        let prop_name = self.prop_names.get::<JsValue, _, _>(self.cx, self.idx)?;
         let value = self.input.get(self.cx, prop_name)?;
 
         self.idx += 1;
