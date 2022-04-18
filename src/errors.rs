@@ -16,7 +16,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub struct Error(#[from] ErrorKind);
 
 impl Error {
-    #[allow(clippy::must_use_candidate)]
+    #[must_use]
     pub fn kind(&self) -> &ErrorKind {
         &self.0
     }
