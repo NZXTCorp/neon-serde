@@ -14,7 +14,7 @@ use num;
 fn as_num<T: num::cast::NumCast, OutT: num::cast::NumCast>(n: T) -> LibResult<OutT> {
     match num::cast::<T, OutT>(n) {
         Some(n2) => Ok(n2),
-        None => Err(ErrorKind::CastError)?,
+        None => Err(ErrorKind::CastError.into()),
     }
 }
 
