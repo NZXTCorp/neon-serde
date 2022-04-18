@@ -92,6 +92,7 @@ impl Error {
 }
 
 pub trait MapErrIntoThrow<T> {
+    #[allow(clippy::missing_errors_doc)] // Nothing useful to say about the error. It returns a converted error if one is contained.
     fn map_err_into_throw<'a, 'b: 'a, C>(self, cx: &'a mut C) -> neon::result::NeonResult<T>
     where
         C: neon::context::Context<'b>;

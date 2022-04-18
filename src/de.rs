@@ -28,6 +28,13 @@ where
     Ok(t)
 }
 
+
+/// Deserialize an instance of type `T` from an `Option<Handle<JsValue>>`
+///
+/// # Errors
+///
+/// Can fail for various reasons see `ErrorKind`
+///
 pub fn from_value_opt<'j, C, T>(cx: &mut C, value: Option<Handle<'j, JsValue>>) -> LibResult<T>
 where
     C: Context<'j>,
