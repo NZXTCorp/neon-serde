@@ -87,10 +87,20 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
         } else if let Ok(val) = self.input.downcast::<JsObject, C>(self.cx) {
             let mut deserializer = JsObjectAccess::new(self.cx, val)?;
             visitor.visit_map(&mut deserializer)
-        } else {
+        } else if let Ok(_val) = self.input.downcast::<JsFunction, C>(self.cx) {
+            Err(ErrorKind::NotImplemented("deserialization not implemented for JsFunction").into())
+        } else if let Ok(_val) = self.input.downcast::<JsArrayBuffer, C>(self.cx) {
             Err(
-                ErrorKind::NotImplemented("unimplemented Deserializer::Deserializer").into(),
+                ErrorKind::NotImplemented("deserialization not implemented for JsArrayBuffer")
+                    .into(),
             )
+        } else if let Ok(_val) = self.input.downcast::<JsError, C>(self.cx) {
+            Err(ErrorKind::NotImplemented("deserialization not implemented for JsError").into())
+        } else {
+            Err(ErrorKind::NotImplemented(
+                "deserialization not implemented for unrecognized JS value type",
+            )
+            .into())
         }
     }
 
