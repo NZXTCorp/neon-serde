@@ -28,6 +28,13 @@ where
     Ok(t)
 }
 
+
+/// Deserialize an instance of type `T` from an `Option<Handle<JsValue>>`
+///
+/// # Errors
+///
+/// Can fail for various reasons see `ErrorKind`
+///
 pub fn from_value_opt<'j, C, T>(cx: &mut C, value: Option<Handle<'j, JsValue>>) -> LibResult<T>
 where
     C: Context<'j>,
@@ -64,7 +71,10 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
             visitor.visit_string(val.value(self.cx))
         } else if let Ok(val) = self.input.downcast::<JsNumber, C>(self.cx) {
             let v = val.value(self.cx);
+            // Using a margin here would defeat the purpose. This code is checking if a perfect integer is contained
+            #[allow(clippy::float_cmp)]
             if v.trunc() == v {
+                #[allow(clippy::cast_possible_truncation)] // Truncating is the point of this code.
                 visitor.visit_i64(v as i64)
             } else {
                 visitor.visit_f64(v)
@@ -78,9 +88,9 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
             let mut deserializer = JsObjectAccess::new(self.cx, val)?;
             visitor.visit_map(&mut deserializer)
         } else {
-            bail!(ErrorKind::NotImplemented(
-                "unimplemented Deserializer::Deserializer",
-            ));
+            Err(
+                ErrorKind::NotImplemented("unimplemented Deserializer::Deserializer").into(),
+            )
         }
     }
 
@@ -111,18 +121,18 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &'d mut Des
             let prop_names = val.get_own_property_names(self.cx)?;
             let len = prop_names.len(self.cx);
             if len != 1 {
-                Err(ErrorKind::InvalidKeyType(format!(
+                return Err(ErrorKind::InvalidKeyType(format!(
                     "object key with {} properties",
                     len
-                )))?
+                )).into());
             }
-            let key = prop_names.get(self.cx, 0)?.downcast::<JsString, C>(self.cx).or_throw(self.cx)?;
+            let key = prop_names.get::<JsValue, _, _>(self.cx, 0)?.downcast::<JsString, C>(self.cx).or_throw(self.cx)?;
             let enum_value = val.get(self.cx, key)?;
             let key_value = key.value(self.cx);
             visitor.visit_enum(JsEnumAccess::new(self.cx, key_value, Some(enum_value)))
         } else {
             let m = self.input.to_string(self.cx)?.value(self.cx);
-            Err(ErrorKind::InvalidKeyType(m))?
+            Err(ErrorKind::InvalidKeyType(m).into())
         }
     }
 
@@ -252,9 +262,9 @@ impl<'x, 'a, 'j, C: Context<'j>> MapAccess<'x> for JsObjectAccess<'a, 'j, C> {
         V: DeserializeSeed<'x>,
     {
         if self.idx >= self.len {
-            return Err(ErrorKind::ArrayIndexOutOfBounds(self.len, self.idx))?;
+            return Err(ErrorKind::ArrayIndexOutOfBounds(self.len, self.idx).into());
         }
-        let prop_name = self.prop_names.get(self.cx, self.idx)?;
+        let prop_name = self.prop_names.get::<JsValue, _, _>(self.cx, self.idx)?;
         let value = self.input.get(self.cx, prop_name)?;
 
         self.idx += 1;

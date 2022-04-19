@@ -2,7 +2,7 @@
 #![deny(unused_variables)]
 #![deny(unused_mut)]
 #![deny(clippy)]
-#![deny(clippy_pedantic)]
+#![deny(clippy::pedantic)]
 #![allow(stutter)]
 #![recursion_limit = "128"]
 
@@ -71,12 +71,11 @@
 //! ```
 //!
 
-#[macro_use]
-extern crate error_chain;
 extern crate neon;
 extern crate num;
 #[macro_use]
 extern crate serde;
+extern crate thiserror;
 
 pub mod de;
 pub mod errors;
